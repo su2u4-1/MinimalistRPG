@@ -1,66 +1,11 @@
-import os, json
+import json
 from classlib import *
-
-
-def switch_language(language):
-    global TEXT
-    f = open(lan_dir + "\\" + language + ".json", "r")
-    data = json.load(f)
-    f.close()
-    if language != default_language:
-        f = open(lan_dir + "\\" + default_language + ".json", "r")
-        TEXT = my_dict(data, json.load(f))
-        f.close()
-    else:
-        TEXT = my_dict(data)
-
-
-def create_role():
-    def load_archive():
-        path = data_dir + "\\" + input(TEXT["create_role_0"]) + ".json"
-        if os.path.isfile(path):
-            player = Player()
-            f = open(path, "r")
-            player.update(json.load(f))
-            f.close()
-            switch_language(player.language)
-            return player
-        else:
-            print(TEXT["create_role_1"])
-            return load_archive()
-
-    option = input(f"1.{TEXT['create_role_2']}\t2.{TEXT['create_role_3']}:")
-    if option == "1":
-        return load_archive()
-    elif option == "2":
-        return Player(input(TEXT["create_role_4"]))
-    else:
-        print(TEXT["input_error"])
-        return create_role()
-
-
-def save_archive(player: Player, path=None):
-    if path is None:
-        path = data_dir + f"\\{player.name}.json"
-    if os.path.isfile(path):
-        inp = input(f"{TEXT['save_archive_0']}\t1.{TEXT['save_archive_1']}\t2.{TEXT['save_archive_2']}\t3.{TEXT['save_archive_3']}:")
-        match inp:
-            case "1":
-                path = data_dir + "\\" + input(TEXT["save_archive_4"]) + ".json"
-                save_archive(player, path)
-                return
-            case "2":
-                pass
-            case _:
-                return
-    f = open(path, "w+")
-    f.write(json.dumps(player.serialize()))
-    f.close()
 
 
 def material_shop():
     player.location = "material_shop"
-    product_list = []
+    with open(data_dir + "\\" + default_language + "\\text.json", "r") as f:
+        product_list = json.load(f)["material_shop"]
     print("歡迎來到素材商店")
     player.bag.renew()
     while True:
@@ -74,7 +19,7 @@ def material_shop():
                         choose = input("請輸入商品編號(輸入-1取消):")
                         if choose == "-1":
                             break
-                        choose = product_list[int(choose)-1]
+                        choose = product_list[int(choose) - 1]
                         quantity = int(input("買的數量:"))
                         if quantity < 1:
                             print("數量過少")
@@ -134,7 +79,9 @@ def next_lv(lv: int):
 def main():
     global player
     print(TEXT["hello_message"])
-    player = create_role()
+    player = playerManager.create_role()
+    if player is None:
+        exit()
     print(TEXT["player_name"], player.name)
     while True:
         if player.location == "lv":
@@ -142,9 +89,7 @@ def main():
         else:
             print(TEXT["current_location"], TEXT[player.location])
         if player.location == "home":
-            option = input(
-                f"1.{TEXT['go_out']}\t2.{TEXT['material_shop']}\t3.{TEXT['prop_shop']}\t4.{TEXT['blacksmith_shop']}\t5.{TEXT['bank']}\t6.{TEXT['gym']}\t7.{TEXT['task_wall']}\t8.{TEXT['setting']}:"
-            )
+            option = input(f"1.{TEXT['go_out']}\t2.{TEXT['material_shop']}\t3.{TEXT['prop_shop']}\t4.{TEXT['blacksmith_shop']}\t5.{TEXT['bank']}\t6.{TEXT['gym']}\t7.{TEXT['task_wall']}\t8.{TEXT['setting']}:")
             match option:
                 case "1":
                     player.location = "lv"
@@ -181,7 +126,8 @@ def main():
 
 if __name__ == "__main__":
     data_dir = "\\".join(__file__.split("\\")[:-2] + ["data"])
-    lan_dir = "\\".join(__file__.split("\\")[:-2] + ["language"])
+    save_dir = "\\".join(__file__.split("\\")[:-2] + ["save"])
     default_language = "zh-tw"
-    switch_language(default_language)
+    playerManager = PlayerManager(data_dir, save_dir, default_language)
+    TEXT = playerManager.TEXT
     main()

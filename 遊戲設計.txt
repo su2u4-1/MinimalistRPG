@@ -12,3 +12,18 @@ RPG遊戲
 
 屬性(道具, 裝備 (or 技能)):
 耐久 (or 持續時間), 基礎提升, 加成, 特殊效果 ......
+
+tree:
+game
+├───data
+│   ├───en
+│   │   ├───text.json #文本
+│   │   └───product_list.json #商品列表
+│   └───zh-tw
+│       ├───text.json
+│       └───product_list.json
+├───save #存檔
+│   └───test.json
+└───src #原始碼
+    ├───classlib.py
+    └───main.py

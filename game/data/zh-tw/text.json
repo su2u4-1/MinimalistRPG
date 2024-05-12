@@ -18,11 +18,12 @@
     "explore": "探索",
     "next_level": "下一關",
 
-    "create_role_0": "請輸入存檔名稱(=角色名稱):",
+    "create_role_0": "請輸入存檔名稱(預設為角色名稱)(輸入-1取消):",
     "create_role_1": "檔案不存在",
     "create_role_2": "載入存檔",
     "create_role_3": "建立角色",
-    "create_role_4": "請輸入角色名稱:",
+    "create_role_4": "取消",
+    "create_role_5": "請輸入角色名稱:",
 
     "save_archive_0": "檔案已存在",
     "save_archive_1": "重命名",
