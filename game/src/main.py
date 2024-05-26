@@ -16,17 +16,11 @@ def locationDecorator(fn):
 def material_shop(floor):
     f = True
     while f:
-        if floor == 1:
-            print("歡迎來到素材商店一樓")
-            player.location = "material_shop_f1"
-        elif floor == 2:
-            print("歡迎來到素材商店二樓")
-            player.location = "material_shop_f2"
-        elif floor == 3:
-            print("歡迎來到素材商店三樓")
-            player.location = "material_shop_f3"
+        if 1 <= floor <= 3:
+            print(TEXT[f"material_shop_{floor-1}"])
+            player.location = f"material_shop_f{floor}"
         else:
-            print(f"樓層{floor}不存在")
+            print(f"")
             if floor > 3:
                 floor = 3
             elif floor < 1:
@@ -36,37 +30,74 @@ def material_shop(floor):
             product_list = json.load(f)[f"material_shop_f{floor}"]
         player.bag.renew()
         while f:
-            option = input("1.買東西\t2.賣東西\t3.上樓\t4.下樓\t5.離開:")
+            option = input(f"[1.{TEXT['material_shop_4']}][2.{TEXT['material_shop_5']}][3.{TEXT['material_shop_6']}][4.{TEXT['material_shop_7']}][5.{TEXT['material_shop_8']}]:")
             match option:
                 case "1":
-                    print("編號\t品名\t\t價錢")
+                    print(TEXT["material_shop_9"])
                     for i in range(len(product_list)):
-                        print(f"{i+1}.\t{product_list[i][0]}\t{product_list[i][1]}")
+                        print(f"[{str(i+1)+'.':<4}][{product_list[i][0]}][{product_list[i][1]:<5}$]")
                     while True:
+                        choose = input(TEXT["material_shop_10"])
+                        if choose == "-1":
+                            break
                         try:
-                            choose = input("請輸入商品編號(輸入-1取消):")
-                            if choose == "-1":
-                                break
-                            choose = product_list[int(choose) - 1]
-                            quantity = int(input("買的數量:"))
-                            if quantity < 1:
-                                print("數量過少")
-                                continue
+                            choose = int(choose)
                         except ValueError:
-                            print("輸入非數字")
+                            print(TEXT["material_shop_11"])
                             continue
-                        except IndexError:
-                            print("編號不存在")
+                        if choose < 1 or choose > len(product_list):
+                            print(TEXT["material_shop_12"])
+                            continue
+                        choose = product_list[choose - 1]
+                        quantity = input(TEXT["material_shop_13"])
+                        try:
+                            quantity = int(quantity)
+                        except TypeError:
+                            print(TEXT["material_shop_11"])
+                            continue
+                        if quantity < 1:
+                            print(TEXT["material_shop_14"])
                             continue
                         if player.money >= choose[1] * quantity:
                             player.money -= choose[1] * quantity
-                            player.bag[choose[0]] += quantity
-                            print(f"你買了{quantity}個{choose[1]}，花了{choose[1] * quantity}元，還剩{player.money}塊")
+                            player.bag[choose[0]] = [player.bag[choose[0]][0] + quantity, choose[1] // 2]
+                            print(TEXT["material_shop_15"].format(quantity, choose[0], choose[1] * quantity, player.money))
                             break
                         else:
-                            print(f"錢不夠喔，你還剩{player.money}塊")
+                            print(TEXT["material_shop_16"].format(player.money))
                 case "2":
-                    pass
+                    player.show_bag()
+                    while True:
+                        choose = input(TEXT["material_shop_10"])
+                        if choose == "-1":
+                            break
+                        try:
+                            choose = int(choose)
+                        except ValueError:
+                            print(TEXT["material_shop_11"])
+                            continue
+                        if choose < 1 or choose > len(player.bag):
+                            print(TEXT["material_shop_12"])
+                            continue
+                        choose = list(player.bag)[choose - 1]
+                        quantity = input(TEXT["material_shop_17"])
+                        try:
+                            quantity = int(quantity)
+                        except TypeError:
+                            print(TEXT["material_shop_11"])
+                            continue
+                        if quantity < 1:
+                            print(TEXT["material_shop_14"])
+                            continue
+                        if quantity > player.bag[choose][0]:
+                            print(TEXT["material_shop_18"])
+                            continue
+                        m = player.bag[choose][1] * quantity
+                        player.money += m
+                        player.bag[choose][0] -= quantity
+                        player.bag.renew()
+                        print(TEXT["material_shop_19"].format(quantity, choose, m, player.money))
+                        break
                 case "3":
                     floor += 1
                     break
@@ -129,7 +160,7 @@ def main():
         else:
             print(TEXT["current_location"], TEXT[player.location])
         if player.location == "home":
-            option = input(f"1.{TEXT['go_out']}\t2.{TEXT['material_shop']}\t3.{TEXT['prop_shop']}\t4.{TEXT['blacksmith_shop']}\t5.{TEXT['bank']}\t6.{TEXT['gym']}\t7.{TEXT['task_wall']}\t8.{TEXT['setting']}:")
+            option = input(f"[1.{TEXT['go_out']}][2.{TEXT['material_shop']}][3.{TEXT['prop_shop']}][4.{TEXT['blacksmith_shop']}][5.{TEXT['bank']}][6.{TEXT['gym']}][7.{TEXT['task_wall']}][8.{TEXT['setting']}]:")
             match option:
                 case "1":
                     player.location = "lv"
@@ -150,7 +181,7 @@ def main():
                 case _:
                     print(TEXT["input_error"])
         else:
-            option = input(f"1.{TEXT['go_home']}\t2.{TEXT['explore']}\t3.{TEXT['next_level']}\t4.{TEXT['setting']}:")
+            option = input(f"[1.{TEXT['go_home']}][2.{TEXT['explore']}][3.{TEXT['next_level']}][4.{TEXT['setting']}]:")
             match option:
                 case "1":
                     player.location = "home"
