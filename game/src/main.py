@@ -39,8 +39,9 @@ def material_shop(floor):
             option = input("1.買東西\t2.賣東西\t3.上樓\t4.下樓\t5.離開:")
             match option:
                 case "1":
+                    print("編號\t品名\t\t價錢")
                     for i in range(len(product_list)):
-                        print(f"{i+1}.\t品名:{product_list[i][0]}\t價錢:{product_list[i][1]}")
+                        print(f"{i+1}.\t{product_list[i][0]}\t{product_list[i][1]}")
                     while True:
                         try:
                             choose = input("請輸入商品編號(輸入-1取消):")
