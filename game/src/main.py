@@ -2,60 +2,98 @@ import json
 from classlib import *
 
 
-def material_shop():
-    player.location = "material_shop"
-    with open(data_dir + "\\" + default_language + "\\text.json", "r") as f:
-        product_list = json.load(f)["material_shop"]
-    print("歡迎來到素材商店")
-    player.bag.renew()
-    while True:
-        option = input("1.買東西\t2.賣東西\t3.離開:")
-        match option:
-            case "1":
-                for i in range(len(product_list)):
-                    print(f"{i+1}.\t品名:{product_list[i][0]}\t價錢:{product_list[i][1]}")
-                while True:
-                    try:
-                        choose = input("請輸入商品編號(輸入-1取消):")
-                        if choose == "-1":
-                            break
-                        choose = product_list[int(choose) - 1]
-                        quantity = int(input("買的數量:"))
-                        if quantity < 1:
-                            print("數量過少")
+def locationDecorator(fn):
+    def f(*args, **kwargs):
+        location = player.location
+        result = fn(*args, **kwargs)
+        player.location = location
+        return result
+
+    return f
+
+
+@locationDecorator
+def material_shop(floor):
+    f = True
+    while f:
+        if floor == 1:
+            print("歡迎來到素材商店一樓")
+            player.location = "material_shop_f1"
+        elif floor == 2:
+            print("歡迎來到素材商店二樓")
+            player.location = "material_shop_f2"
+        elif floor == 3:
+            print("歡迎來到素材商店三樓")
+            player.location = "material_shop_f3"
+        else:
+            print(f"樓層{floor}不存在")
+            if floor > 3:
+                floor = 3
+            elif floor < 1:
+                floor = 1
+            continue
+        with open(data_dir + "\\" + default_language + "\\product_list.json", "r") as f:
+            product_list = json.load(f)[f"material_shop_f{floor}"]
+        player.bag.renew()
+        while f:
+            option = input("1.買東西\t2.賣東西\t3.上樓\t4.下樓\t5.離開:")
+            match option:
+                case "1":
+                    for i in range(len(product_list)):
+                        print(f"{i+1}.\t品名:{product_list[i][0]}\t價錢:{product_list[i][1]}")
+                    while True:
+                        try:
+                            choose = input("請輸入商品編號(輸入-1取消):")
+                            if choose == "-1":
+                                break
+                            choose = product_list[int(choose) - 1]
+                            quantity = int(input("買的數量:"))
+                            if quantity < 1:
+                                print("數量過少")
+                                continue
+                        except ValueError:
+                            print("輸入非數字")
                             continue
-                    except ValueError:
-                        print("輸入非數字")
-                        continue
-                    except IndexError:
-                        print("編號不存在")
-                        continue
-                    if player.money >= choose[1] * quantity:
-                        player.money -= choose[1] * quantity
-                        player.bag[choose[0]] += quantity
-                        break
-                    else:
-                        print("錢不夠喔")
-            case "2":
-                pass
-            case "3":
-                break
-            case _:
-                print(TEXT["input_error"])
+                        except IndexError:
+                            print("編號不存在")
+                            continue
+                        if player.money >= choose[1] * quantity:
+                            player.money -= choose[1] * quantity
+                            player.bag[choose[0]] += quantity
+                            print(f"你買了{quantity}個{choose[1]}，花了{choose[1] * quantity}元，還剩{player.money}塊")
+                            break
+                        else:
+                            print(f"錢不夠喔，你還剩{player.money}塊")
+                case "2":
+                    pass
+                case "3":
+                    floor += 1
+                    break
+                case "4":
+                    floor -= 1
+                    break
+                case "5":
+                    f = False
+                case _:
+                    print(TEXT["input_error"])
 
 
+@locationDecorator
 def prop_shop():
     pass
 
 
+@locationDecorator
 def blacksmith_shop():
     pass
 
 
+@locationDecorator
 def bank():
     pass
 
 
+@locationDecorator
 def gym():
     pass
 
@@ -64,6 +102,7 @@ def task_wall():
     pass
 
 
+@locationDecorator
 def setting():
     pass
 
@@ -94,7 +133,7 @@ def main():
                 case "1":
                     player.location = "lv"
                 case "2":
-                    material_shop()
+                    material_shop(1)
                 case "3":
                     prop_shop()
                 case "4":
@@ -110,7 +149,7 @@ def main():
                 case _:
                     print(TEXT["input_error"])
         else:
-            option = input(f"1.{TEXT['go_home']}\t2.{TEXT['explore']}\t3.{TEXT['next_lv']}\t4.{TEXT['setting']}:")
+            option = input(f"1.{TEXT['go_home']}\t2.{TEXT['explore']}\t3.{TEXT['next_level']}\t4.{TEXT['setting']}:")
             match option:
                 case "1":
                     player.location = "home"
