@@ -10,6 +10,7 @@ class Player:
         self.language = "zh-tw"
         self.money = 100
         self.bag = my_dict(dict(), default=[0, 0])
+        self.account = BankAccount(self.name)
 
     def update(self, data: dict):
         for k, v in data.items():
@@ -130,3 +131,21 @@ class PlayerManager:
             with open(path, "w+") as f:
                 f.write(json.dumps(player.serialize()))
                 return
+
+class BankAccount:
+    def __init__(self, account:str):
+        self.money = 0
+        self.name = account
+        self.bag = my_dict(dict(), default=[0, 0])
+        self.credit = 100
+
+    def deposit(self, amount:int):
+        self.money += amount
+        return self.money
+
+    def withdraw(self, amount:int):
+        if self.money <= amount:
+            self.money -= amount
+            return self.money
+        else:
+            return -1

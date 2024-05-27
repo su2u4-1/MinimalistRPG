@@ -122,7 +122,55 @@ def blacksmith_shop():
 
 @locationDecorator
 def bank():
-    pass
+    f = True
+    while f:
+        player.location = "bank"
+        print("歡迎來到銀行")
+        option = input("[1.存錢][2.取錢][3.借錢][4.還錢][5.查看資訊][6.離開]:")
+        if option == "1":
+            while True:
+                amount = input("要存多少:")
+                try:
+                    amount = int(amount)
+                except TypeError:
+                    print("輸入非數字")
+                    continue
+                if amount < 1:
+                    print("金額過小")
+                    continue
+                if amount > player.money:
+                    print(f"金額過多，你只有{player.money}塊")
+                    continue
+                balance = player.account.deposit(amount)
+                print("你存了{amount}塊，你還剩{player.money}塊，帳戶餘額為{balance}")
+                break
+        elif option == "2":
+            while True:
+                amount = input("要取多少:")
+                try:
+                    amount = int(amount)
+                except TypeError:
+                    print("輸入非數字")
+                    continue
+                if amount < 1:
+                    print("金額過小")
+                    continue
+                balance = player.account.withdraw(amount)
+                if balance == -1:
+                    print(f"金額過多，你帳戶裡只有{player.account.money}塊")
+                    continue
+                print("你取了{amount}塊，你手邊有{player.money}塊，帳戶餘額為{balance}")
+                break
+        elif option == "3":
+            pass
+        elif option == "4":
+            pass
+        elif option == "5":
+            pass
+        elif option == "6":
+            f = False
+        else:
+            print(TEXT['input_error'])
 
 
 @locationDecorator
