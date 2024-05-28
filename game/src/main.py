@@ -28,6 +28,8 @@ def material_shop(floor):
             continue
         with open(data_dir + "\\" + default_language + "\\product_list.json", "r") as f:
             product_list = json.load(f)[f"material_shop_f{floor}"]
+        for i in range(len(product_list)):
+            product_list[i] = CreatItem(product_list[i])
         player.bag.renew()
         while f:
             option = input(f"[1.{TEXT['material_shop_4']}][2.{TEXT['material_shop_5']}][3.{TEXT['material_shop_6']}][4.{TEXT['material_shop_7']}][5.{TEXT['material_shop_8']}]:")
@@ -35,7 +37,7 @@ def material_shop(floor):
                 case "1":
                     print(TEXT["material_shop_9"])
                     for i in range(len(product_list)):
-                        print(f"[{str(i+1)+'.':<4}][{product_list[i][0]}][{product_list[i][1]:<5}$]")
+                        print(f"[{str(i+1)+'.':<4}][{product_list[i]}][{product_list[i].price:<5}$]")
                     while True:
                         choose = input(TEXT["material_shop_10"])
                         if choose == "-1":
@@ -58,46 +60,20 @@ def material_shop(floor):
                         if quantity < 1:
                             print(TEXT["material_shop_14"])
                             continue
-                        if player.money >= choose[1] * quantity:
-                            player.money -= choose[1] * quantity
-                            player.bag[choose[0]] = [player.bag[choose[0]][0] + quantity, choose[1] // 2]
-                            print(TEXT["material_shop_15"].format(quantity, choose[0], choose[1] * quantity, player.money))
+                        if player.money >= choose.price * quantity:
+                            player.money -= choose.price * quantity
+                            player.bag[choose] += quantity
+                            print(TEXT["material_shop_15"].format(quantity, choose, choose.price * quantity, player.money))
                             break
                         else:
                             print(TEXT["material_shop_16"].format(player.money))
                 case "2":
-                    player.show_bag()
-                    while True:
-                        choose = input(TEXT["material_shop_10"])
-                        if choose == "-1":
-                            break
-                        try:
-                            choose = int(choose)
-                        except ValueError:
-                            print(TEXT["material_shop_11"])
-                            continue
-                        if choose < 1 or choose > len(player.bag):
-                            print(TEXT["material_shop_12"])
-                            continue
-                        choose = list(player.bag)[choose - 1]
-                        quantity = input(TEXT["material_shop_17"])
-                        try:
-                            quantity = int(quantity)
-                        except TypeError:
-                            print(TEXT["material_shop_11"])
-                            continue
-                        if quantity < 1:
-                            print(TEXT["material_shop_14"])
-                            continue
-                        if quantity > player.bag[choose][0]:
-                            print(TEXT["material_shop_18"])
-                            continue
-                        m = player.bag[choose][1] * quantity
-                        player.money += m
-                        player.bag[choose][0] -= quantity
-                        player.bag.renew()
-                        print(TEXT["material_shop_19"].format(quantity, choose, m, player.money))
-                        break
+                    choose, quantity = player.bag.getItem()
+                    m = choose.price // 2 * quantity
+                    player.money += m
+                    player.bag[choose] -= quantity
+                    player.bag.renew()
+                    print(TEXT["material_shop_18"].format(quantity, choose, m, player.money))
                 case "3":
                     floor += 1
                     break
@@ -126,7 +102,7 @@ def bank():
     while f:
         player.location = "bank"
         print("歡迎來到銀行")
-        option = input("[1.存錢][2.取錢][3.借錢][4.還錢][5.查看資訊][6.離開]:")
+        option = input("[1.存錢][2.取錢][3.存物品][4.取物品][5.查看資訊][6.離開]:")
         if option == "1":
             while True:
                 amount = input("要存多少:")
@@ -142,7 +118,7 @@ def bank():
                     print(f"金額過多，你只有{player.money}塊")
                     continue
                 balance = player.account.deposit(amount)
-                print("你存了{amount}塊，你還剩{player.money}塊，帳戶餘額為{balance}")
+                print(f"你存了{amount}塊，你還剩{player.money}塊，帳戶餘額為{balance}")
                 break
         elif option == "2":
             while True:
@@ -159,10 +135,13 @@ def bank():
                 if balance == -1:
                     print(f"金額過多，你帳戶裡只有{player.account.money}塊")
                     continue
-                print("你取了{amount}塊，你手邊有{player.money}塊，帳戶餘額為{balance}")
+                print(f"你取了{amount}塊，你手邊有{player.money}塊，帳戶餘額為{balance}")
                 break
         elif option == "3":
-            pass
+            item, quantity = player.bag.getItem()
+            player.bag[item] -= quantity
+            player.bag.renew()
+            player.account.bag[item] += quantity
         elif option == "4":
             pass
         elif option == "5":
@@ -170,7 +149,7 @@ def bank():
         elif option == "6":
             f = False
         else:
-            print(TEXT['input_error'])
+            print(TEXT["input_error"])
 
 
 @locationDecorator
@@ -247,6 +226,6 @@ if __name__ == "__main__":
     data_dir = "\\".join(__file__.split("\\")[:-2] + ["data"])
     save_dir = "\\".join(__file__.split("\\")[:-2] + ["save"])
     default_language = "zh-tw"
-    playerManager = PlayerManager(data_dir, save_dir, default_language)
-    TEXT = playerManager.TEXT
+    TEXT = init(data_dir, save_dir, default_language)
+    playerManager = PlayerManager()
     main()
