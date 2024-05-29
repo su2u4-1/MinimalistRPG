@@ -69,6 +69,8 @@ def material_shop(floor):
                             print(TEXT["material_shop_16"].format(player.money))
                 case "2":
                     choose, quantity = player.bag.getItem()
+                    if choose == -1 and quantity == -1:
+                        continue
                     m = choose.price // 2 * quantity
                     player.money += m
                     player.bag[choose] -= quantity
@@ -101,51 +103,64 @@ def bank():
     f = True
     while f:
         player.location = "bank"
-        print("歡迎來到銀行")
-        option = input("[1.存錢][2.取錢][3.存物品][4.取物品][5.查看資訊][6.離開]:")
+        print(TEXT["bank_0"])
+        option = input(f"[1.{TEXT['bank_1']}][2.{TEXT['bank_2']}][3.{TEXT['bank_3']}][4.{TEXT['bank_4']}][5.{TEXT['bank_5']}][6.{TEXT['bank_6']}]:")
         if option == "1":
             while True:
-                amount = input("要存多少:")
+                amount = input(TEXT["bank_7"])
                 try:
                     amount = int(amount)
                 except TypeError:
-                    print("輸入非數字")
+                    print(TEXT["bank_8"])
                     continue
                 if amount < 1:
-                    print("金額過小")
+                    print(TEXT["bank_9"])
                     continue
                 if amount > player.money:
-                    print(f"金額過多，你只有{player.money}塊")
+                    print(TEXT["bank_10"].format(player.money))
                     continue
                 balance = player.account.deposit(amount)
-                print(f"你存了{amount}塊，你還剩{player.money}塊，帳戶餘額為{balance}")
+                print(TEXT["bank_11"].format(amount, player.money, balance))
                 break
         elif option == "2":
             while True:
-                amount = input("要取多少:")
+                amount = input(TEXT["bank_12"])
                 try:
                     amount = int(amount)
                 except TypeError:
-                    print("輸入非數字")
+                    print(TEXT["bank_8"])
                     continue
                 if amount < 1:
-                    print("金額過小")
+                    print(TEXT["bank_9"])
                     continue
                 balance = player.account.withdraw(amount)
                 if balance == -1:
-                    print(f"金額過多，你帳戶裡只有{player.account.money}塊")
+                    print(TEXT["bank_13"].format(player.account.money))
                     continue
-                print(f"你取了{amount}塊，你手邊有{player.money}塊，帳戶餘額為{balance}")
+                print(TEXT["bank_14"].format(amount, player.money, balance))
                 break
         elif option == "3":
             item, quantity = player.bag.getItem()
+            if item == -1 and quantity == -1:
+                continue
             player.bag[item] -= quantity
             player.bag.renew()
             player.account.bag[item] += quantity
+            player.account.bag.renew()
         elif option == "4":
-            pass
+            item, quantity = player.account.bag.getItem()
+            if item == -1 and quantity == -1:
+                continue
+            player.account.bag[item] -= quantity
+            player.account.bag.renew()
+            player.bag[item] += quantity
+            player.bag.renew()
         elif option == "5":
-            pass
+            print(TEXT["bank_15"].format(player.money, player.account.money))
+            print(TEXT["bank_16"])
+            player.bag.show()
+            print(TEXT["bank_17"])
+            player.account.bag.show()
         elif option == "6":
             f = False
         else:
@@ -157,6 +172,7 @@ def gym():
     pass
 
 
+@locationDecorator
 def task_wall():
     pass
 
@@ -166,10 +182,12 @@ def setting():
     pass
 
 
+@locationDecorator
 def explore():
     pass
 
 
+@locationDecorator
 def next_lv(lv: int):
     pass
 
