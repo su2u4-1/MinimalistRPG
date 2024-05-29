@@ -13,8 +13,9 @@ def locationDecorator(fn):
 
 
 @locationDecorator
-def material_shop(floor):
+def material_shop():
     f = True
+    floor = 1
     while f:
         if 1 <= floor <= 3:
             print(TEXT[f"material_shop_{floor-1}"])
@@ -26,7 +27,7 @@ def material_shop(floor):
             elif floor < 1:
                 floor = 1
             continue
-        with open(data_dir + "\\" + default_language + "\\product_list.json", "r") as f:
+        with open(data_dir + "\\product_list.json", "r") as f:
             product_list = json.load(f)[f"material_shop_f{floor}"]
         for i in range(len(product_list)):
             product_list[i] = CreatItem(product_list[i])
@@ -37,7 +38,7 @@ def material_shop(floor):
                 case "1":
                     print(TEXT["material_shop_9"])
                     for i in range(len(product_list)):
-                        print(f"[{str(i+1)+'.':<4}][{product_list[i]}][{product_list[i].price:<5}$]")
+                        print(f"[{str(i+1)+'.':<4}][{product_list[i]}][{product_list[i].price:>5}$]")
                     while True:
                         choose = input(TEXT["material_shop_10"])
                         if choose == "-1":
@@ -89,6 +90,11 @@ def material_shop(floor):
 
 
 @locationDecorator
+def equipment_shop():
+    pass
+
+
+@locationDecorator
 def prop_shop():
     pass
 
@@ -120,6 +126,7 @@ def bank():
                     print(TEXT["bank_10"].format(player.money))
                     continue
                 balance = player.account.deposit(amount)
+                player.money -= amount
                 print(TEXT["bank_11"].format(amount, player.money, balance))
                 break
         elif option == "2":
@@ -193,11 +200,6 @@ def next_lv(lv: int):
 
 
 def main():
-    global player
-    print(TEXT["hello_message"])
-    player = playerManager.create_role()
-    if player is None:
-        exit()
     print(TEXT["player_name"], player.name)
     while True:
         if player.location == "lv":
@@ -205,23 +207,25 @@ def main():
         else:
             print(TEXT["current_location"], TEXT[player.location])
         if player.location == "home":
-            option = input(f"[1.{TEXT['go_out']}][2.{TEXT['material_shop']}][3.{TEXT['prop_shop']}][4.{TEXT['blacksmith_shop']}][5.{TEXT['bank']}][6.{TEXT['gym']}][7.{TEXT['task_wall']}][8.{TEXT['setting']}]:")
+            option = input(f"[1.{TEXT['go_out']}][2.{TEXT['material_shop']}][3.{TEXT['equipment_shop']}][4.{TEXT['prop_shop']}][5.{TEXT['blacksmith_shop']}][6.{TEXT['bank']}][7.{TEXT['gym']}][8.{TEXT['task_wall']}][9.{TEXT['setting']}]:")
             match option:
                 case "1":
                     player.location = "lv"
                 case "2":
-                    material_shop(1)
+                    material_shop()
                 case "3":
-                    prop_shop()
+                    equipment_shop()
                 case "4":
-                    blacksmith_shop()
+                    prop_shop()
                 case "5":
-                    bank()
+                    blacksmith_shop()
                 case "6":
-                    gym()
+                    bank()
                 case "7":
-                    task_wall()
+                    gym()
                 case "8":
+                    task_wall()
+                case "9":
                     setting()
                 case _:
                     print(TEXT["input_error"])
@@ -246,4 +250,7 @@ if __name__ == "__main__":
     default_language = "zh-tw"
     TEXT = init(data_dir, save_dir, default_language)
     playerManager = PlayerManager()
-    main()
+    print(TEXT["hello_message"])
+    player = playerManager.create_role()
+    if player is not None:
+        main()
