@@ -1,3 +1,6 @@
+import json, zlib
+
+
 def naming():
     a = ["初級", "中級", "高級"]
     b = [["乾", "戰甲", "戰靴", "劍"], ["坤", "騎甲", "騎靴", "槍"], ["震", "布甲", "布靴", "弓"], ["巽", "皮甲", "皮靴", "匕"], ["坎", "聖袍", "聖靴", "經"], ["離", "法袍", "法靴", "杖"], ["艮", "重甲", "重靴", "盾"], ["兌", "巫袍", "巫靴", "符"]]
@@ -15,8 +18,6 @@ def naming():
 
 
 def price():
-    import json, zlib
-
     # 設定基礎價格、等級係數和類型係數
     base_price = 10
 
@@ -69,11 +70,3 @@ def price():
     # 將更新後的資料寫回到 JSON 檔案
     with open("updated_item_list.json", "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
-
-
-if __name__ == "__main__":
-    a = input(":")
-    if a == "0":
-        naming()
-    elif a == "1":
-        price()

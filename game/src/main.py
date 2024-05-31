@@ -28,9 +28,7 @@ def material_shop():
                 floor = 1
             continue
         with open(data_dir + "\\product_list.json", "r") as f:
-            product_list = json.load(f)[f"material_shop_f{floor}"]
-        for i in range(len(product_list)):
-            product_list[i] = CreatItem(product_list[i])
+            product_list: list[CreatItem] = list(map(CreatItem, json.load(f)[f"material_shop_f{floor}"]))
         player.bag.renew()
         while f:
             option = input(f"[1.{TEXT['material_shop_4']}][2.{TEXT['material_shop_5']}][3.{TEXT['material_shop_6']}][4.{TEXT['material_shop_7']}][5.{TEXT['material_shop_8']}]:")
@@ -125,9 +123,9 @@ def bank():
                 if amount > player.money:
                     print(TEXT["bank_10"].format(player.money))
                     continue
-                balance = player.account.deposit(amount)
+                player.account.money += amount
                 player.money -= amount
-                print(TEXT["bank_11"].format(amount, player.money, balance))
+                print(TEXT["bank_11"].format(amount, player.money, player.account.money))
                 break
         elif option == "2":
             while True:
