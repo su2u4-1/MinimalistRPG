@@ -1,100 +1,4 @@
-import json
 from classlib import *
-
-
-def locationDecorator(fn):
-    def f(*args, **kwargs):
-        location = player.location
-        result = fn(*args, **kwargs)
-        player.location = location
-        return result
-
-    return f
-
-
-@locationDecorator
-def material_shop():
-    f = True
-    floor = 1
-    while f:
-        if 1 <= floor <= 3:
-            print(TEXT[f"material_shop_{floor-1}"])
-            player.location = f"material_shop_f{floor}"
-        else:
-            print(f"")
-            if floor > 3:
-                floor = 3
-            elif floor < 1:
-                floor = 1
-            continue
-        with open(data_dir + "\\product_list.json", "r") as f:
-            product_list: list[CreatItem] = list(map(CreatItem, json.load(f)[f"material_shop_f{floor}"]))
-        player.bag.renew()
-        while f:
-            option = input(f"[1.{TEXT['material_shop_4']}][2.{TEXT['material_shop_5']}][3.{TEXT['material_shop_6']}][4.{TEXT['material_shop_7']}][5.{TEXT['material_shop_8']}]:")
-            match option:
-                case "1":
-                    print(TEXT["material_shop_9"])
-                    for i in range(len(product_list)):
-                        print(f"[{str(i+1)+'.':<4}][{product_list[i]}][{product_list[i].price:>5}$]")
-                    while True:
-                        choose = input(TEXT["material_shop_10"])
-                        if choose == "-1":
-                            break
-                        try:
-                            choose = int(choose)
-                        except ValueError:
-                            print(TEXT["material_shop_11"])
-                            continue
-                        if choose < 1 or choose > len(product_list):
-                            print(TEXT["material_shop_12"])
-                            continue
-                        choose = product_list[choose - 1]
-                        quantity = input(TEXT["material_shop_13"])
-                        try:
-                            quantity = int(quantity)
-                        except TypeError:
-                            print(TEXT["material_shop_11"])
-                            continue
-                        if quantity < 1:
-                            print(TEXT["material_shop_14"])
-                            continue
-                        if player.money >= choose.price * quantity:
-                            player.money -= choose.price * quantity
-                            player.bag[choose] += quantity
-                            print(TEXT["material_shop_15"].format(quantity, choose, choose.price * quantity, player.money))
-                            break
-                        else:
-                            print(TEXT["material_shop_16"].format(player.money))
-                case "2":
-                    choose, quantity = player.bag.getItem()
-                    if choose == -1 and quantity == -1:
-                        continue
-                    m = choose.price // 2 * quantity
-                    player.money += m
-                    player.bag[choose] -= quantity
-                    player.bag.renew()
-                    print(TEXT["material_shop_18"].format(quantity, choose, m, player.money))
-                case "3":
-                    floor += 1
-                    break
-                case "4":
-                    floor -= 1
-                    break
-                case "5":
-                    f = False
-                case _:
-                    print(TEXT["input_error"])
-
-
-@locationDecorator
-def equipment_shop():
-    pass
-
-
-@locationDecorator
-def prop_shop():
-    pass
 
 
 @locationDecorator
@@ -210,11 +114,11 @@ def main():
                 case "1":
                     player.location = "lv"
                 case "2":
-                    material_shop()
+                    material_shop.run()
                 case "3":
-                    equipment_shop()
+                    equipment_shop.run()
                 case "4":
-                    prop_shop()
+                    prop_shop.run()
                 case "5":
                     blacksmith_shop()
                 case "6":
@@ -250,5 +154,9 @@ if __name__ == "__main__":
     playerManager = PlayerManager()
     print(TEXT["hello_message"])
     player = playerManager.create_role()
+    set_player(player)
+    material_shop = Shop("material")
+    equipment_shop = Shop("equipment")
+    prop_shop = Shop("prop")
     if player is not None:
         main()

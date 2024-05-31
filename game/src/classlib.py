@@ -247,6 +247,95 @@ class Bag(my_dict):
             print(TEXT["show_4"])
 
 
+def locationDecorator(fn):
+    def f(*args, **kwargs):
+        location = player.location
+        result = fn(*args, **kwargs)
+        player.location = location
+        return result
+
+    return f
+
+
+class Shop:
+    def __init__(self, name: str):
+        self.name = name
+
+    @locationDecorator
+    def run(self):
+        f = True
+        floor = 1
+        while f:
+            if 1 <= floor <= 3:
+                print(TEXT[f"{self.name}_shop_{floor-1}"])
+                player.location = f"{self.name}_shop_f{floor}"
+            else:
+                print(TEXT["shop_0"].format(floor))
+                if floor > 3:
+                    floor = 3
+                elif floor < 1:
+                    floor = 1
+                continue
+            with open(data_dir + "\\product_list.json", "r") as f:
+                product_list: list[CreatItem] = list(map(CreatItem, json.load(f)[f"{self.name}_shop_f{floor}"]))
+            player.bag.renew()
+            while f:
+                option = input(f"[1.{TEXT[f'shop_1']}][2.{TEXT[f'shop_2']}][3.{TEXT[f'shop_3']}][4.{TEXT[f'shop_4']}][5.{TEXT[f'shop_5']}]:")
+                match option:
+                    case "1":
+                        print(TEXT["shop_6"])
+                        for i in range(len(product_list)):
+                            print(f"[{str(i+1)+'.':<4}][{product_list[i]}][{product_list[i].price:>5}$]")
+                        while True:
+                            choose = input(TEXT["shop_7"])
+                            if choose == "-1":
+                                break
+                            try:
+                                choose = int(choose)
+                            except ValueError:
+                                print(TEXT["shop_8"])
+                                continue
+                            if choose < 1 or choose > len(product_list):
+                                print(TEXT["shop_9"])
+                                continue
+                            choose = product_list[choose - 1]
+                            quantity = input(TEXT["shop_10"])
+                            try:
+                                quantity = int(quantity)
+                            except TypeError:
+                                print(TEXT["shop_8"])
+                                continue
+                            if quantity < 1:
+                                print(TEXT["shop_11"])
+                                continue
+                            if player.money >= choose.price * quantity:
+                                player.money -= choose.price * quantity
+                                player.bag[choose] += quantity
+                                print(TEXT["shop_12"].format(quantity, choose, choose.price * quantity, player.money))
+                                break
+                            else:
+                                print(TEXT["shop_13"].format(player.money))
+                    case "2":
+                        choose, quantity = player.bag.getItem()
+                        if choose == -1 and quantity == -1:
+                            continue
+                        m = choose.price // 2 * quantity
+                        player.money += m
+                        player.bag[choose] -= quantity
+                        player.bag.renew()
+                        print(TEXT["shop_14"].format(quantity, choose, m, player.money))
+                    case "3":
+                        floor += 1
+                        break
+                    case "4":
+                        floor -= 1
+                        break
+                    case "5":
+                        f = False
+                    case _:
+                        print(TEXT["input_error"])
+
+
 def init(data: str, save: str, default: str) -> my_dict[str:str]:
     global data_dir, save_dir, default_language, ITEM, TEXT
     data_dir = data
@@ -257,3 +346,8 @@ def init(data: str, save: str, default: str) -> my_dict[str:str]:
     with open(data_dir + "\\" + default_language + "\\item_list.json", "r") as f:
         ITEM = my_dict(json.load(f))
     return TEXT
+
+
+def set_player(p: Player):
+    global player
+    player = p
