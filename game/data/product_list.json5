@@ -1,5 +1,5 @@
 {
-    "material_shop_f1": [
+    material_shop_f1: [
         "material_0",
         "material_1",
         "material_2",
@@ -119,9 +119,9 @@
         "material_116",
         "material_117",
         "material_118",
-        "material_119"
+        "material_119",
     ],
-    "material_shop_f2": [
+    material_shop_f2: [
         "material_120",
         "material_121",
         "material_122",
@@ -241,9 +241,9 @@
         "material_236",
         "material_237",
         "material_238",
-        "material_239"
+        "material_239",
     ],
-    "material_shop_f3": [
+    material_shop_f3: [
         "material_240",
         "material_241",
         "material_242",
@@ -363,9 +363,9 @@
         "material_356",
         "material_357",
         "material_358",
-        "material_359"
+        "material_359",
     ],
-    "equipment_shop_f1": [
+    equipment_shop_f1: [
         "equipment_0",
         "equipment_1",
         "equipment_2",
@@ -485,9 +485,9 @@
         "equipment_116",
         "equipment_117",
         "equipment_118",
-        "equipment_119"
+        "equipment_119",
     ],
-    "equipment_shop_f2": [
+    equipment_shop_f2: [
         "equipment_120",
         "equipment_121",
         "equipment_122",
@@ -607,9 +607,9 @@
         "equipment_236",
         "equipment_237",
         "equipment_238",
-        "equipment_239"
+        "equipment_239",
     ],
-    "equipment_shop_f3": [
+    equipment_shop_f3: [
         "equipment_240",
         "equipment_241",
         "equipment_242",
@@ -729,6 +729,27 @@
         "equipment_356",
         "equipment_357",
         "equipment_358",
-        "equipment_359"
-    ]
+        "equipment_359",
+    ],
+    prop_shop_f1: [
+        "prop_0",
+        "prop_1",
+        "prop_2",
+        "prop_3",
+        "prop_4",
+        "prop_5",
+        "prop_6",
+        "prop_7",
+        "prop_8",
+        "prop_9",
+        "prop_10",
+        "prop_11",
+        "prop_12",
+        "prop_13",
+        "prop_14",
+        "prop_15",
+        "prop_16",
+        "prop_17",
+        "prop_18",
+    ],
 }

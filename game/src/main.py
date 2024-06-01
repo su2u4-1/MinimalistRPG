@@ -149,14 +149,13 @@ def main():
 if __name__ == "__main__":
     data_dir = "\\".join(__file__.split("\\")[:-2] + ["data"])
     save_dir = "\\".join(__file__.split("\\")[:-2] + ["save"])
-    default_language = "zh-tw"
-    TEXT = init(data_dir, save_dir, default_language)
+    TEXT = init(data_dir, save_dir)
     playerManager = PlayerManager()
     print(TEXT["hello_message"])
     player = playerManager.create_role()
     set_player(player)
-    material_shop = Shop("material")
-    equipment_shop = Shop("equipment")
-    prop_shop = Shop("prop")
+    material_shop = Shop("material", 3)
+    equipment_shop = Shop("equipment", 3)
+    prop_shop = Shop("prop", 1)
     if player is not None:
         main()

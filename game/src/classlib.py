@@ -1,4 +1,4 @@
-import os, json
+import os, json5, wcwidth
 from typing import Any
 
 
@@ -16,11 +16,13 @@ class Player:
     def update(self, data: dict):
         for k, v in data.items():
             if k == "bag":
-                self.bag = Bag(v, default=0)
+                self.bag = Bag({}, default=0)
+                self.bag.loadItem(v)
             elif k == "account":
                 self.account = BankAccount(self.name)
                 self.account.money = v[0]
-                self.account.bag = Bag(v[1], default=0)
+                self.account.bag = Bag({}, default=0)
+                self.account.bag.loadItem(v[1])
             else:
                 self.__dict__[k] = v
 
@@ -28,9 +30,16 @@ class Player:
         temp = {}
         for k, v in self.__dict__.items():
             if k == "bag":
-                temp[k] = self.bag
+                t = {}
+                for k, v in self.bag.items():
+                    t[k.id] = v
+                temp[k] = v
             elif k == "account":
-                temp[k] = [self.account.money, self.account.bag]
+                t = {}
+                for k, v in self.account.bag.items():
+                    t[k.id] = v
+                temp[k] = v
+                temp[k] = [self.account.money, t]
             else:
                 temp[k] = v
         return temp
@@ -60,11 +69,11 @@ class PlayerManager:
 
     def switch_language(self, language: str):
         global TEXT
-        with open(data_dir + "\\" + language + "\\text.json", "r") as f:
-            data = json.load(f)
+        with open(data_dir + "\\" + language + "\\text.json5", "r") as f:
+            data = json5.load(f)
         if language != default_language:
-            with open(data_dir + "\\" + default_language + "\\text.json", "r") as f:
-                TEXT = my_dict(data, json.load(f))
+            with open(data_dir + "\\" + default_language + "\\text.json5", "r") as f:
+                TEXT = my_dict(data, json5.load(f))
         else:
             TEXT = my_dict(data)
 
@@ -74,11 +83,11 @@ class PlayerManager:
                 inp = input(TEXT["create_role_0"])
                 if inp == "-1":
                     break
-                path = save_dir + "\\" + inp + ".json"
+                path = save_dir + "\\" + inp + ".json5"
                 if os.path.isfile(path):
                     player = Player()
                     with open(path, "r") as f:
-                        player.update(json.load(f))
+                        player.update(json5.load(f))
                     self.switch_language(player.language)
                     return player
                 else:
@@ -100,13 +109,13 @@ class PlayerManager:
 
     def save_archive(self, player: Player, path: str = None):
         if path is None:
-            path = save_dir + f"\\{player.name}.json"
+            path = save_dir + f"\\{player.name}.json5"
         while True:
             if os.path.isfile(path):
                 inp = input(f"{TEXT['save_archive_0']}\t[1.{TEXT['save_archive_1']}][2.{TEXT['save_archive_2']}][3.{TEXT['save_archive_3']}]:")
                 match inp:
                     case "1":
-                        path = save_dir + "\\" + input(TEXT["save_archive_4"]) + ".json"
+                        path = save_dir + "\\" + input(TEXT["save_archive_4"]) + ".json5"
                         continue
                     case "2":
                         pass
@@ -116,7 +125,7 @@ class PlayerManager:
                         print(TEXT["input_error"])
                         continue
             with open(path, "w+") as f:
-                f.write(json.dumps(player.serialize()))
+                f.write(json5.dumps(player.serialize()))
                 break
 
 
@@ -234,9 +243,9 @@ class Bag(my_dict):
 
     def show(self):
         if len(self) != 0:
-            l0 = len(str(len(self)))
-            l1 = max(len(k.name) for k in self)
-            l2 = max(len(str(v)) for v in self.values())
+            l0 = max(len(str(len(self))), len(TEXT["show_1"]))
+            l1 = max(max(len(k.name) for k in self), len(TEXT["show_1"]))
+            l2 = max(max(len(str(v)) for v in self.values()), len(TEXT["show_1"]))
             i = 1
             print(f"{TEXT['show_0']:^{l0+2}}{TEXT['show_1']:^{l1+2}}{TEXT['show_2']:^{l2+2}} {TEXT['show_3']}")
             for k, v in self.items():
@@ -245,6 +254,10 @@ class Bag(my_dict):
         else:
             print(f"{TEXT['show_0']} {TEXT['show_1']} {TEXT['show_2']} {TEXT['show_3']}")
             print(TEXT["show_4"])
+
+    def loadItem(self, itemDict: dict):
+        for k, v in itemDict.items():
+            self[CreatItem(k)] += v
 
 
 def locationDecorator(fn):
@@ -258,34 +271,38 @@ def locationDecorator(fn):
 
 
 class Shop:
-    def __init__(self, name: str):
+    def __init__(self, name: str, top_floor):
         self.name = name
+        self.top_floor = top_floor
 
     @locationDecorator
     def run(self):
         f = True
         floor = 1
         while f:
-            if 1 <= floor <= 3:
+            if 1 <= floor <= self.top_floor:
                 print(TEXT[f"{self.name}_shop_{floor-1}"])
                 player.location = f"{self.name}_shop_f{floor}"
             else:
                 print(TEXT["shop_0"].format(floor))
-                if floor > 3:
-                    floor = 3
+                if floor > self.top_floor:
+                    floor = self.top_floor
                 elif floor < 1:
                     floor = 1
                 continue
-            with open(data_dir + "\\product_list.json", "r") as f:
-                product_list: list[CreatItem] = list(map(CreatItem, json.load(f)[f"{self.name}_shop_f{floor}"]))
+            with open(data_dir + "\\product_list.json5", "r") as f:
+                product_list: list[CreatItem] = list(map(CreatItem, json5.load(f)[f"{self.name}_shop_f{floor}"]))
             player.bag.renew()
             while f:
                 option = input(f"[1.{TEXT[f'shop_1']}][2.{TEXT[f'shop_2']}][3.{TEXT[f'shop_3']}][4.{TEXT[f'shop_4']}][5.{TEXT[f'shop_5']}]:")
                 match option:
                     case "1":
                         print(TEXT["shop_6"])
+                        l1 = len(str(len(product_list))) + 1
+                        l2 = max(wcwidth.wcswidth(v.name) for v in product_list)
+                        l3 = max(len(str(v.price)) for v in product_list)
                         for i in range(len(product_list)):
-                            print(f"[{str(i+1)+'.':<4}][{product_list[i]}][{product_list[i].price:>5}$]")
+                            print(f"[{str(i+1)+'.':<{l1}}][{pad(product_list[i], l2, '<')}][{product_list[i].price:>{l3}}$]")
                         while True:
                             choose = input(TEXT["shop_7"])
                             if choose == "-1":
@@ -336,18 +353,38 @@ class Shop:
                         print(TEXT["input_error"])
 
 
-def init(data: str, save: str, default: str) -> my_dict[str:str]:
-    global data_dir, save_dir, default_language, ITEM, TEXT
+def init(data: str, save: str) -> my_dict[str:str]:
+    global data_dir, save_dir, default_language, ITEM, TEXT, CONFIG
     data_dir = data
     save_dir = save
-    default_language = default
-    with open(data_dir + "\\" + default_language + "\\text.json", "r") as f:
-        TEXT = my_dict(json.load(f))
-    with open(data_dir + "\\" + default_language + "\\item_list.json", "r") as f:
-        ITEM = my_dict(json.load(f))
+    with open(data_dir + "\\config.json5", "r") as f:
+        CONFIG = my_dict(json5.load(f))
+    default_language = CONFIG["default_language"]
+    with open(data_dir + "\\" + default_language + "\\text.json5", "r") as f:
+        TEXT = my_dict(json5.load(f))
+    with open(data_dir + "\\" + default_language + "\\item_list.json5", "r") as f:
+        ITEM = my_dict(json5.load(f))
     return TEXT
 
 
 def set_player(p: Player):
     global player
     player = p
+
+
+def pad(s: CreatItem | str, width, align=">") -> str:
+    if type(s) == CreatItem:
+        padding = width - wcwidth.wcswidth(s.name)
+        s = s.__str__()
+    else:
+        padding = width - wcwidth.wcswidth(s)
+    if align == ">":
+        return " " * padding + s
+    elif align == "<":
+        return s + " " * padding
+    elif align == "^":
+        left_padding = padding // 2
+        right_padding = padding - left_padding
+        return " " * left_padding + s + " " * right_padding
+    else:
+        raise ValueError("Invalid alignment")
