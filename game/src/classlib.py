@@ -44,6 +44,31 @@ class Player:
                 temp[k] = v
         return temp
 
+    def save_archive(self, path: str = None):
+        if path is None:
+            path = save_dir + f"\\{self.name}.json5"
+        while True:
+            if os.path.isfile(path):
+                inp = input(f"{TEXT['save_archive_0']}\t[1.{TEXT['save_archive_1']}][2.{TEXT['save_archive_2']}][3.{TEXT['save_archive_3']}]:")
+                match inp:
+                    case "1":
+                        path = save_dir + "\\" + input(TEXT["save_archive_4"]) + ".json5"
+                        continue
+                    case "2":
+                        pass
+                    case "3":
+                        break
+                    case _:
+                        print(TEXT["input_error"])
+                        continue
+            with open(path, "w+") as f:
+                t = json5.dumps(self.serialize())
+                if type(t) == str:
+                    f.write(t)
+                else:
+                    raise TypeError("The output of json5.dumps is not a string.")
+                break
+
 
 class my_dict(dict):
     def __init__(self, *dicts: dict, default=None):
@@ -63,11 +88,10 @@ class my_dict(dict):
         return self.default
 
 
-class PlayerManager:
-    def __init__(self):
-        self.switch_language(default_language)
+def create_player() -> Player:
+    global player
 
-    def switch_language(self, language: str):
+    def switch_language(language: str):
         global TEXT
         with open(data_dir + "\\" + language + "\\text.json5", "r") as f:
             data = json5.load(f)
@@ -77,7 +101,7 @@ class PlayerManager:
         else:
             TEXT = my_dict(data)
 
-    def create_role(self):
+    def create_role():
         def load_archive() -> Player | None:
             while True:
                 inp = input(TEXT["create_role_0"])
@@ -85,21 +109,21 @@ class PlayerManager:
                     break
                 path = save_dir + "\\" + inp + ".json5"
                 if os.path.isfile(path):
-                    player = Player()
+                    p = Player()
                     with open(path, "r") as f:
-                        player.update(json5.load(f))
-                    self.switch_language(player.language)
-                    return player
+                        p.update(json5.load(f))
+                    switch_language(p.language)
+                    return p
                 else:
                     print(TEXT["create_role_1"])
 
         while True:
             option = input(f"[1.{TEXT['create_role_2']}][2.{TEXT['create_role_3']}][3.{TEXT['create_role_4']}]:")
             if option == "1":
-                player = load_archive()
-                if player is None:
+                p = load_archive()
+                if p is None:
                     continue
-                return player
+                return p
             elif option == "2":
                 return Player(input(TEXT["create_role_5"]))
             elif option == "3":
@@ -107,26 +131,12 @@ class PlayerManager:
             else:
                 print(TEXT["input_error"])
 
-    def save_archive(self, player: Player, path: str = None):
-        if path is None:
-            path = save_dir + f"\\{player.name}.json5"
-        while True:
-            if os.path.isfile(path):
-                inp = input(f"{TEXT['save_archive_0']}\t[1.{TEXT['save_archive_1']}][2.{TEXT['save_archive_2']}][3.{TEXT['save_archive_3']}]:")
-                match inp:
-                    case "1":
-                        path = save_dir + "\\" + input(TEXT["save_archive_4"]) + ".json5"
-                        continue
-                    case "2":
-                        pass
-                    case "3":
-                        break
-                    case _:
-                        print(TEXT["input_error"])
-                        continue
-            with open(path, "w+") as f:
-                f.write(json5.dumps(player.serialize()))
-                break
+    switch_language(default_language)
+    print(TEXT["hello_message"])
+    player = create_role()
+    if player is None:
+        exit()
+    return player
 
 
 class BankAccount:
@@ -353,7 +363,7 @@ class Shop:
                         print(TEXT["input_error"])
 
 
-def init(data: str, save: str) -> my_dict[str:str]:
+def init(data: str, save: str) -> tuple[my_dict[str:str], Player]:
     global data_dir, save_dir, default_language, ITEM, TEXT, CONFIG
     data_dir = data
     save_dir = save
@@ -364,12 +374,7 @@ def init(data: str, save: str) -> my_dict[str:str]:
         TEXT = my_dict(json5.load(f))
     with open(data_dir + "\\" + default_language + "\\item_list.json5", "r") as f:
         ITEM = my_dict(json5.load(f))
-    return TEXT
-
-
-def set_player(p: Player):
-    global player
-    player = p
+    return TEXT, create_player()
 
 
 def pad(s: CreatItem | str, width, align=">") -> str:
