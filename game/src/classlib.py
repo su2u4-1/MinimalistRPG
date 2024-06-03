@@ -31,14 +31,13 @@ class Player:
         for k, v in self.__dict__.items():
             if k == "bag":
                 t = {}
-                for k, v in self.bag.items():
-                    t[k.id] = v
-                temp[k] = v
+                for k0, v0 in self.bag.items():
+                    t[k0.id] = v0
+                temp[k] = t
             elif k == "account":
                 t = {}
-                for k, v in self.account.bag.items():
-                    t[k.id] = v
-                temp[k] = v
+                for k0, v0 in self.account.bag.items():
+                    t[k0.id] = v0
                 temp[k] = [self.account.money, t]
             else:
                 temp[k] = v
@@ -158,16 +157,16 @@ class BankAccount:
             return -1
 
 
-class CreatItem:
+class Item:
     def __init__(self, id: str):
-        self.id = id
         data = ITEM[id]
-        self.name = data["name"]
+        self.name = ITEMNAME[id][0]
+        self.id = id
         self.price = data["price"]
-        self.decoration = data["decoration"]
+        self.decoration = ITEMNAME[id][1]
         self.type = data["type"]
-        if "other" in data:
-            self.other = data["other"]
+        if "content" in data:
+            self.content = data["content"]
 
     def __str__(self) -> str:
         if self.decoration == 0:
@@ -222,7 +221,7 @@ class Bag(my_dict):
             if v <= 0:
                 del self[k]
 
-    def getItem(self) -> tuple[CreatItem, int]:
+    def getItem(self) -> tuple[Item, int]:
         self.show()
         while True:
             item = input(TEXT["store_item_0"])
@@ -267,7 +266,7 @@ class Bag(my_dict):
 
     def loadItem(self, itemDict: dict):
         for k, v in itemDict.items():
-            self[CreatItem(k)] += v
+            self[Item(k)] += v
 
 
 def locationDecorator(fn):
@@ -301,7 +300,7 @@ class Shop:
                     floor = 1
                 continue
             with open(data_dir + "\\product_list.json5", "r") as f:
-                product_list: list[CreatItem] = list(map(CreatItem, json5.load(f)[f"{self.name}_shop_f{floor}"]))
+                product_list: list[Item] = list(map(Item, json5.load(f)[f"{self.name}_shop_f{floor}"]))
             player.bag.renew()
             while f:
                 option = input(f"[1.{TEXT[f'shop_1']}][2.{TEXT[f'shop_2']}][3.{TEXT[f'shop_3']}][4.{TEXT[f'shop_4']}][5.{TEXT[f'shop_5']}]:")
@@ -364,7 +363,7 @@ class Shop:
 
 
 def init(data: str, save: str) -> tuple[my_dict[str:str], Player]:
-    global data_dir, save_dir, default_language, ITEM, TEXT, CONFIG
+    global data_dir, save_dir, default_language, ITEM, TEXT, CONFIG, ITEMNAME
     data_dir = data
     save_dir = save
     with open(data_dir + "\\config.json5", "r") as f:
@@ -372,13 +371,15 @@ def init(data: str, save: str) -> tuple[my_dict[str:str], Player]:
     default_language = CONFIG["default_language"]
     with open(data_dir + "\\" + default_language + "\\text.json5", "r") as f:
         TEXT = my_dict(json5.load(f))
-    with open(data_dir + "\\" + default_language + "\\item_list.json5", "r") as f:
+    with open(data_dir + "\\" + default_language + "\\item_name.json5", "r") as f:
+        ITEMNAME = my_dict(json5.load(f))
+    with open(data_dir + "item_list.json5", "r") as f:
         ITEM = my_dict(json5.load(f))
     return TEXT, create_player()
 
 
-def pad(s: CreatItem | str, width, align=">") -> str:
-    if type(s) == CreatItem:
+def pad(s: Item | str, width, align=">") -> str:
+    if type(s) == Item:
         padding = width - wcwidth.wcswidth(s.name)
         s = s.__str__()
     else:

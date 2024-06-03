@@ -3,7 +3,25 @@ from classlib import *
 
 @locationDecorator
 def blacksmith_shop():
-    pass
+    f = True
+    while f:
+        print("歡迎來到鐵匠鋪")
+        player.location = "blacksmith_shop"
+        option = input("[1.打造裝備][2.鍛造素材][3.強化裝備][4.回收裝備][5.鍛造說明][6.離開]:")
+        if option == "1":
+            pass
+        elif option == "2":
+            pass
+        elif option == "3":
+            pass
+        elif option == "4":
+            pass
+        elif option == "5":
+            print(TEXT['forge_manual'])
+        elif option == "6":
+            f = False
+        else:
+            print(TEXT['input_error'])
 
 
 @locationDecorator
