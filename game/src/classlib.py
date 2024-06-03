@@ -48,8 +48,8 @@ class Player:
             path = save_dir + f"\\{self.name}.json5"
         while True:
             if os.path.isfile(path):
-                inp = input(f"{TEXT['save_archive_0']}\t[1.{TEXT['save_archive_1']}][2.{TEXT['save_archive_2']}][3.{TEXT['save_archive_3']}]:")
-                match inp:
+                option = input(f"{TEXT['save_archive_0']}\n[1.{TEXT['save_archive_1']}][2.{TEXT['save_archive_2']}][3.{TEXT['save_archive_3']}]:")
+                match option:
                     case "1":
                         path = save_dir + "\\" + input(TEXT["save_archive_4"]) + ".json5"
                         continue
@@ -100,22 +100,22 @@ def create_player() -> Player:
         else:
             TEXT = my_dict(data)
 
-    def create_role():
-        def load_archive() -> Player | None:
-            while True:
-                inp = input(TEXT["create_role_0"])
-                if inp == "-1":
-                    break
-                path = save_dir + "\\" + inp + ".json5"
-                if os.path.isfile(path):
-                    p = Player()
-                    with open(path, "r") as f:
-                        p.update(json5.load(f))
-                    switch_language(p.language)
-                    return p
-                else:
-                    print(TEXT["create_role_1"])
+    def load_archive() -> Player | None:
+        while True:
+            option = input(TEXT["create_role_0"])
+            if option == "-1":
+                break
+            path = save_dir + "\\" + option + ".json5"
+            if os.path.isfile(path):
+                p = Player()
+                with open(path, "r") as f:
+                    p.update(json5.load(f))
+                switch_language(p.language)
+                return p
+            else:
+                print(TEXT["create_role_1"])
 
+    def create_role() -> Player | None:
         while True:
             option = input(f"[1.{TEXT['create_role_2']}][2.{TEXT['create_role_3']}][3.{TEXT['create_role_4']}]:")
             if option == "1":
@@ -169,9 +169,7 @@ class Item:
             self.content = data["content"]
 
     def __str__(self) -> str:
-        if self.decoration == 0:
-            return self.name
-        elif self.decoration == 1 or self.decoration == 2:
+        if self.decoration == 1 or self.decoration == 2:
             name = self.name
             name = name.replace(TEXT["creat_item_0"], f"\033[32m{TEXT['creat_item_0']}\033[0m")
             name = name.replace(TEXT["creat_item_1"], f"\033[34m{TEXT['creat_item_1']}\033[0m")
@@ -193,20 +191,8 @@ class Item:
             name = name.replace(TEXT["creat_item_17"], f"\033[36m{TEXT['creat_item_17']}\033[0m")
             name = name.replace(TEXT["creat_item_18"], f"\033[31m{TEXT['creat_item_18']}\033[0m")
             return name
-        elif self.decoration == 2:
-            name = self.name
-            name = name.replace(TEXT["creat_item_0"], f"\033[32m{TEXT['creat_item_0']}\033[0m")
-            name = name.replace(TEXT["creat_item_1"], f"\033[34m{TEXT['creat_item_1']}\033[0m")
-            name = name.replace(TEXT["creat_item_2"], f"\033[35m{TEXT['creat_item_2']}\033[0m")
-            name = name.replace(TEXT["creat_item_3"], f"\033[47m{TEXT['creat_item_3']}\033[0m")
-            name = name.replace(TEXT["creat_item_4"], f"\033[43m{TEXT['creat_item_4']}\033[0m")
-            name = name.replace(TEXT["creat_item_5"], f"\033[42m{TEXT['creat_item_5']}\033[0m")
-            name = name.replace(TEXT["creat_item_6"], f"\033[46m{TEXT['creat_item_6']}\033[0m")
-            name = name.replace(TEXT["creat_item_7"], f"\033[44m{TEXT['creat_item_7']}\033[0m")
-            name = name.replace(TEXT["creat_item_8"], f"\033[41m{TEXT['creat_item_8']}\033[0m")
-            name = name.replace(TEXT["creat_item_9"], f"\033[40m{TEXT['creat_item_9']}\033[0m")
-            name = name.replace(TEXT["creat_item_10"], f"\033[45m{TEXT['creat_item_10']}\033[0m")
-            return name
+        else:
+            return self.name
 
     def __format__(self, format_space) -> str:
         return self.__str__()
@@ -237,6 +223,8 @@ class Bag(my_dict):
                 continue
             item = list(self)[item - 1]
             quantity = input(TEXT["store_item_3"])
+            if quantity == "-1":
+                return -1, -1
             try:
                 quantity = int(quantity)
             except TypeError:
@@ -264,7 +252,7 @@ class Bag(my_dict):
             print(f"{TEXT['show_0']} {TEXT['show_1']} {TEXT['show_2']} {TEXT['show_3']}")
             print(TEXT["show_4"])
 
-    def loadItem(self, itemDict: dict):
+    def loadItem(self, itemDict: dict | my_dict):
         for k, v in itemDict.items():
             self[Item(k)] += v
 

@@ -97,7 +97,7 @@
     store_item_0: "請輸入物品編號(輸入-1取消):",
     store_item_1: "輸入非數字",
     store_item_2: "編號不存在",
-    store_item_3: "數量:",
+    store_item_3: "請輸入要的數量(輸入-1取消):",
     store_item_4: "數量過少",
     store_item_5: "數量過多",
     

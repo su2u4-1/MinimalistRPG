@@ -9,7 +9,26 @@ def blacksmith_shop():
         player.location = "blacksmith_shop"
         option = input("[1.打造裝備][2.鍛造素材][3.強化裝備][4.回收裝備][5.鍛造說明][6.離開]:")
         if option == "1":
-            pass
+            material = Bag(dict(), default=0)
+            while True:
+                print(f"目前成功率{len(material)}%")
+                op = print("[1.添加素材][2.開始鍛造][3.取消]:")
+                if op == "1":
+                    item, quantity = player.bag.getItem()
+                    if item == -1 and quantity == -1:
+                        player.bag.loadItem(material)
+                        continue
+                    player.bag[item] -= quantity
+                    player.bag.renew()
+                    material[item] += quantity
+                    material.renew()
+                elif op == "2":
+                    pass
+                elif op == "3":
+                    player.bag.loadItem(material)
+                    break
+                else:
+                    print(TEXT["input_error"])
         elif option == "2":
             pass
         elif option == "3":
@@ -17,11 +36,11 @@ def blacksmith_shop():
         elif option == "4":
             pass
         elif option == "5":
-            print(TEXT['forge_manual'])
+            print(TEXT["forge_manual"])
         elif option == "6":
             f = False
         else:
-            print(TEXT['input_error'])
+            print(TEXT["input_error"])
 
 
 @locationDecorator
