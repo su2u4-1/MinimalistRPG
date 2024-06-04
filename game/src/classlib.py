@@ -1,4 +1,4 @@
-import os, json5, wcwidth
+import os, json5, wcwidth, zlib
 from typing import Any
 
 
@@ -255,6 +255,13 @@ class Bag(my_dict):
     def loadItem(self, itemDict: dict | my_dict):
         for k, v in itemDict.items():
             self[Item(k)] += v
+
+def success_rate(d: dict| my_dict| Bag) -> int:
+    t = 0
+    for k, v in d.items():
+        t += Item(k).price * v * ((zlib.crc32(k.encode()) - 13887577) / 2139491734 + 9) / 10
+    t /= len(d)
+    return t
 
 
 def locationDecorator(fn):
