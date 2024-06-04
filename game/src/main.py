@@ -1,4 +1,5 @@
 from classlib import *
+from random import randint as ri
 
 
 @locationDecorator
@@ -11,7 +12,8 @@ def blacksmith_shop():
         if option == "1":
             material = Bag(dict(), default=0)
             while True:
-                print(f"目前成功率{len(material)}%")
+                sr = success_rate(material)
+                print(f"目前成功率{len(sr)}%")
                 op = print("[1.添加素材][2.開始鍛造][3.取消]:")
                 if op == "1":
                     item, quantity = player.bag.getItem()
@@ -23,7 +25,11 @@ def blacksmith_shop():
                     material[item] += quantity
                     material.renew()
                 elif op == "2":
-                    pass
+                    sr = success_rate(material)
+                    if ri(0,100) < sr:
+                        pass
+                    else:
+                        material = Bag(dict(), default=0)
                 elif op == "3":
                     player.bag.loadItem(material)
                     break
