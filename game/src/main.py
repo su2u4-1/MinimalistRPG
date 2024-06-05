@@ -13,8 +13,8 @@ def blacksmith_shop():
             material = Bag(dict(), default=0)
             while True:
                 sr = success_rate(material)
-                print(f"目前成功率{len(sr)}%")
-                op = print("[1.添加素材][2.開始鍛造][3.取消]:")
+                print(f"目前成功率{sr}%")
+                op = input("[1.添加素材][2.開始鍛造][3.取消]:")
                 if op == "1":
                     item, quantity = player.bag.getItem()
                     if item == -1 and quantity == -1:
@@ -26,9 +26,10 @@ def blacksmith_shop():
                     material.renew()
                 elif op == "2":
                     sr = success_rate(material)
-                    if ri(0,100) < sr:
-                        pass
+                    if ri(0, 100) < sr:
+                        print("成功")
                     else:
+                        print("失敗")
                         material = Bag(dict(), default=0)
                 elif op == "3":
                     player.bag.loadItem(material)

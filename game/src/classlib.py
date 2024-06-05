@@ -254,14 +254,16 @@ class Bag(my_dict):
 
     def loadItem(self, itemDict: dict | my_dict):
         for k, v in itemDict.items():
-            self[Item(k)] += v
+            self[k] += v
 
-def success_rate(d: dict| my_dict| Bag) -> int:
-    t = 0
+
+def success_rate(d: dict | my_dict | Bag) -> int:
+    if len(d) == 0:
+        return 0
+    t = []
     for k, v in d.items():
-        t += Item(k).price * v * ((zlib.crc32(k.encode()) - 13887577) / 2139491734 + 9) / 10
-    t /= len(d)
-    return t
+        t.append(k.price * v * zlib.adler32(k.name.encode()))
+    return sum(t) / len(t) / max(t) * 100
 
 
 def locationDecorator(fn):
@@ -368,7 +370,7 @@ def init(data: str, save: str) -> tuple[my_dict[str:str], Player]:
         TEXT = my_dict(json5.load(f))
     with open(data_dir + "\\" + default_language + "\\item_name.json5", "r") as f:
         ITEMNAME = my_dict(json5.load(f))
-    with open(data_dir + "item_list.json5", "r") as f:
+    with open(data_dir + "\\item_list.json5", "r") as f:
         ITEM = my_dict(json5.load(f))
     return TEXT, create_player()
 
