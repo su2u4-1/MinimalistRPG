@@ -12,6 +12,7 @@ class Player:
         self.money = 100
         self.bag = Bag(dict(), default=0)
         self.account = BankAccount(self.name)
+        self.modifier = abs(zlib.adler32(name.encode()) - 4294967295) / 8589934590 + 0.5
 
     def update(self, data: dict):
         for k, v in data.items():
@@ -62,7 +63,7 @@ class Player:
                         continue
             with open(path, "w+") as f:
                 t = json5.dumps(self.serialize())
-                if type(t) == str:
+                if isinstance(t, str):
                     f.write(t)
                 else:
                     raise TypeError("The output of json5.dumps is not a string.")
@@ -71,11 +72,14 @@ class Player:
 
 class my_dict(dict):
     def __init__(self, *dicts: dict, default=None):
-        di = dicts[0]
-        for d in dicts:
-            for k, v in d.items():
-                if k not in di:
-                    di[k] = v
+        if len(dicts) > 0:
+            di = dicts[0]
+            for d in dicts:
+                for k, v in d.items():
+                    if k not in di:
+                        di[k] = v
+        else:
+            di = dict()
         super().__init__(di)
         self.default = default
 
@@ -254,16 +258,20 @@ class Bag(my_dict):
 
     def loadItem(self, itemDict: dict | my_dict):
         for k, v in itemDict.items():
+            if isinstance(k, str):
+                k = Item(k)
             self[k] += v
 
 
-def success_rate(d: dict | my_dict | Bag) -> int:
+def forge_result(d: dict[Item, int] | my_dict[Item, int] | Bag[Item, int]) -> tuple[float, dict]:
     if len(d) == 0:
-        return 0
+        return 0.0, my_dict()
     t = []
     for k, v in d.items():
         t.append(k.price * v * zlib.adler32(k.name.encode()))
-    return sum(t) / len(t) / max(t) * 100
+    rate = sum(t) / len(t) / max(t) * player.modifier
+    result = my_dict(dict(), default=0)
+    return rate, result
 
 
 def locationDecorator(fn):
@@ -376,7 +384,7 @@ def init(data: str, save: str) -> tuple[my_dict[str:str], Player]:
 
 
 def pad(s: Item | str, width, align=">") -> str:
-    if type(s) == Item:
+    if isinstance(s, Item):
         padding = width - wcwidth.wcswidth(s.name)
         s = s.__str__()
     else:

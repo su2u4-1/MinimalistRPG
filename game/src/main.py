@@ -1,5 +1,5 @@
 from classlib import *
-from random import randint as ri
+from random import random
 
 
 @locationDecorator
@@ -12,8 +12,9 @@ def blacksmith_shop():
         if option == "1":
             material = Bag(dict(), default=0)
             while True:
-                sr = success_rate(material)
-                print(f"目前成功率{sr}%")
+                rate, result = forge_result(material)
+                print(rate, player.modifier)
+                print(f"目前成功率{round(rate*100, 2)}%, 可能結果/機率:{result}")
                 op = input("[1.添加素材][2.開始鍛造][3.取消]:")
                 if op == "1":
                     item, quantity = player.bag.getItem()
@@ -25,9 +26,10 @@ def blacksmith_shop():
                     material[item] += quantity
                     material.renew()
                 elif op == "2":
-                    sr = success_rate(material)
-                    if ri(0, 100) < sr:
+                    rate, result = forge_result(material)
+                    if random() < rate:
                         print("成功")
+                        material = Bag(dict(), default=0)
                     else:
                         print("失敗")
                         material = Bag(dict(), default=0)
