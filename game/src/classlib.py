@@ -1,9 +1,9 @@
 import os, json5, wcwidth, zlib
-from typing import Any
+from typing import Any, Callable
 
 
 class Player:
-    def __init__(self, name: str = "player"):
+    def __init__(self, name: str = "player") -> None:
         self.name = name
         self.location = "home"
         self.stage_lv = 0  # 關卡等級
@@ -14,7 +14,7 @@ class Player:
         self.account = BankAccount(self.name)
         self.modifier = abs(zlib.adler32(name.encode()) - 4294967295) / 8589934590 + 0.5
 
-    def update(self, data: dict):
+    def update(self, data: dict) -> None:
         for k, v in data.items():
             if k == "bag":
                 self.bag = Bag({}, default=0)
@@ -44,7 +44,7 @@ class Player:
                 temp[k] = v
         return temp
 
-    def save_archive(self, path: str = None):
+    def save_archive(self, path: str = None) -> None:
         if path is None:
             path = save_dir + f"\\{self.name}.json5"
         while True:
@@ -71,7 +71,7 @@ class Player:
 
 
 class my_dict(dict):
-    def __init__(self, *dicts: dict, default=None):
+    def __init__(self, *dicts: dict, default=None) -> None:
         if len(dicts) > 0:
             di = dicts[0]
             for d in dicts:
@@ -91,67 +91,12 @@ class my_dict(dict):
         return self.default
 
 
-def create_player() -> Player:
-    global player
-
-    def switch_language(language: str):
-        global TEXT
-        with open(data_dir + "\\" + language + "\\text.json5", "r") as f:
-            data = json5.load(f)
-        if language != default_language:
-            with open(data_dir + "\\" + default_language + "\\text.json5", "r") as f:
-                TEXT = my_dict(data, json5.load(f))
-        else:
-            TEXT = my_dict(data)
-
-    def load_archive() -> Player | None:
-        while True:
-            option = input(TEXT["create_role_0"])
-            if option == "-1":
-                break
-            path = save_dir + "\\" + option + ".json5"
-            if os.path.isfile(path):
-                p = Player()
-                with open(path, "r") as f:
-                    p.update(json5.load(f))
-                switch_language(p.language)
-                return p
-            else:
-                print(TEXT["create_role_1"])
-
-    def create_role() -> Player | None:
-        while True:
-            option = input(f"[1.{TEXT['create_role_2']}][2.{TEXT['create_role_3']}][3.{TEXT['create_role_4']}]:")
-            if option == "1":
-                p = load_archive()
-                if p is None:
-                    continue
-                return p
-            elif option == "2":
-                return Player(input(TEXT["create_role_5"]))
-            elif option == "3":
-                return
-            else:
-                print(TEXT["input_error"])
-
-    switch_language(default_language)
-    print(TEXT["hello_message"])
-    player = create_role()
-    if player is None:
-        exit()
-    return player
-
-
 class BankAccount:
-    def __init__(self, account: str):
+    def __init__(self, account: str) -> None:
         self.money = 0
         self.name = account
         self.bag = Bag(dict(), default=0)
         self.credit = 100
-
-    def deposit(self, amount: int) -> int:
-        self.money += amount
-        return self.money
 
     def withdraw(self, amount: int) -> int:
         if self.money <= amount:
@@ -162,7 +107,7 @@ class BankAccount:
 
 
 class Item:
-    def __init__(self, id: str):
+    def __init__(self, id: str) -> None:
         data = ITEM[id]
         self.name = ITEMNAME[id][0]
         self.id = id
@@ -203,10 +148,10 @@ class Item:
 
 
 class Bag(my_dict):
-    def __init__(self, *dicts: dict, default=None):
+    def __init__(self, *dicts: dict, default=None) -> None:
         super().__init__(*dicts, default=default)
 
-    def renew(self):
+    def renew(self) -> None:
         for k, v in list(self.items()):
             if v <= 0:
                 del self[k]
@@ -242,7 +187,7 @@ class Bag(my_dict):
                 continue
             return item, quantity
 
-    def show(self):
+    def show(self) -> None:
         if len(self) != 0:
             l0 = max(len(str(len(self))), len(TEXT["show_1"]))
             l1 = max(max(len(k.name) for k in self), len(TEXT["show_1"]))
@@ -256,119 +201,56 @@ class Bag(my_dict):
             print(f"{TEXT['show_0']} {TEXT['show_1']} {TEXT['show_2']} {TEXT['show_3']}")
             print(TEXT["show_4"])
 
-    def loadItem(self, itemDict: dict | my_dict):
+    def loadItem(self, itemDict: dict | my_dict) -> None:
         for k, v in itemDict.items():
             if isinstance(k, str):
                 k = Item(k)
             self[k] += v
 
 
-def forge_result(d: dict[Item, int] | my_dict[Item, int] | Bag[Item, int]) -> tuple[float, dict]:
-    if len(d) == 0:
-        return 0.0, my_dict()
-    t = []
-    for k, v in d.items():
-        t.append(k.price * v * zlib.adler32(k.name.encode()))
-    rate = sum(t) / len(t) / max(t) * player.modifier
-    result = my_dict(dict(), default=0)
-    return rate, result
-
-
-def locationDecorator(fn):
-    def f(*args, **kwargs):
-        location = player.location
-        result = fn(*args, **kwargs)
-        player.location = location
-        return result
-
-    return f
-
-
-class Shop:
-    def __init__(self, name: str, top_floor):
-        self.name = name
-        self.top_floor = top_floor
-
-    @locationDecorator
-    def run(self):
-        f = True
-        floor = 1
-        while f:
-            if 1 <= floor <= self.top_floor:
-                print(TEXT[f"{self.name}_shop_{floor-1}"])
-                player.location = f"{self.name}_shop_f{floor}"
-            else:
-                print(TEXT["shop_0"].format(floor))
-                if floor > self.top_floor:
-                    floor = self.top_floor
-                elif floor < 1:
-                    floor = 1
-                continue
-            with open(data_dir + "\\product_list.json5", "r") as f:
-                product_list: list[Item] = list(map(Item, json5.load(f)[f"{self.name}_shop_f{floor}"]))
-            player.bag.renew()
-            while f:
-                option = input(f"[1.{TEXT[f'shop_1']}][2.{TEXT[f'shop_2']}][3.{TEXT[f'shop_3']}][4.{TEXT[f'shop_4']}][5.{TEXT[f'shop_5']}]:")
-                match option:
-                    case "1":
-                        print(TEXT["shop_6"])
-                        l1 = len(str(len(product_list))) + 1
-                        l2 = max(wcwidth.wcswidth(v.name) for v in product_list)
-                        l3 = max(len(str(v.price)) for v in product_list)
-                        for i in range(len(product_list)):
-                            print(f"[{str(i+1)+'.':<{l1}}][{pad(product_list[i], l2, '<')}][{product_list[i].price:>{l3}}$]")
-                        while True:
-                            choose = input(TEXT["shop_7"])
-                            if choose == "-1":
-                                break
-                            try:
-                                choose = int(choose)
-                            except ValueError:
-                                print(TEXT["shop_8"])
-                                continue
-                            if choose < 1 or choose > len(product_list):
-                                print(TEXT["shop_9"])
-                                continue
-                            choose = product_list[choose - 1]
-                            quantity = input(TEXT["shop_10"])
-                            try:
-                                quantity = int(quantity)
-                            except TypeError:
-                                print(TEXT["shop_8"])
-                                continue
-                            if quantity < 1:
-                                print(TEXT["shop_11"])
-                                continue
-                            if player.money >= choose.price * quantity:
-                                player.money -= choose.price * quantity
-                                player.bag[choose] += quantity
-                                print(TEXT["shop_12"].format(quantity, choose, choose.price * quantity, player.money))
-                                break
-                            else:
-                                print(TEXT["shop_13"].format(player.money))
-                    case "2":
-                        choose, quantity = player.bag.getItem()
-                        if choose == -1 and quantity == -1:
-                            continue
-                        m = choose.price // 2 * quantity
-                        player.money += m
-                        player.bag[choose] -= quantity
-                        player.bag.renew()
-                        print(TEXT["shop_14"].format(quantity, choose, m, player.money))
-                    case "3":
-                        floor += 1
-                        break
-                    case "4":
-                        floor -= 1
-                        break
-                    case "5":
-                        f = False
-                    case _:
-                        print(TEXT["input_error"])
-
-
 def init(data: str, save: str) -> tuple[my_dict[str:str], Player]:
-    global data_dir, save_dir, default_language, ITEM, TEXT, CONFIG, ITEMNAME
+    global data_dir, save_dir, default_language, ITEM, TEXT, CONFIG, ITEMNAME, player
+
+    def switch_language(language: str) -> None:
+        global TEXT
+        with open(data_dir + "\\" + language + "\\text.json5", "r") as f:
+            data = json5.load(f)
+        if language != default_language:
+            with open(data_dir + "\\" + default_language + "\\text.json5", "r") as f:
+                TEXT = my_dict(data, json5.load(f))
+        else:
+            TEXT = my_dict(data)
+
+    def load_archive() -> Player | None:
+        while True:
+            option = input(TEXT["create_role_0"])
+            if option == "-1":
+                break
+            path = save_dir + "\\" + option + ".json5"
+            if os.path.isfile(path):
+                p = Player()
+                with open(path, "r") as f:
+                    p.update(json5.load(f))
+                switch_language(p.language)
+                return p
+            else:
+                print(TEXT["create_role_1"])
+
+    def create_role() -> Player | None:
+        while True:
+            option = input(f"[1.{TEXT['create_role_2']}][2.{TEXT['create_role_3']}][3.{TEXT['create_role_4']}]:")
+            if option == "1":
+                p = load_archive()
+                if p is None:
+                    continue
+                return p
+            elif option == "2":
+                return Player(input(TEXT["create_role_5"]))
+            elif option == "3":
+                return
+            else:
+                print(TEXT["input_error"])
+
     data_dir = data
     save_dir = save
     with open(data_dir + "\\config.json5", "r") as f:
@@ -380,22 +262,19 @@ def init(data: str, save: str) -> tuple[my_dict[str:str], Player]:
         ITEMNAME = my_dict(json5.load(f))
     with open(data_dir + "\\item_list.json5", "r") as f:
         ITEM = my_dict(json5.load(f))
-    return TEXT, create_player()
+    switch_language(default_language)
+    print(TEXT["hello_message"])
+    player = create_role()
+    if player is None:
+        exit()
+    return TEXT, player
 
 
-def pad(s: Item | str, width, align=">") -> str:
-    if isinstance(s, Item):
-        padding = width - wcwidth.wcswidth(s.name)
-        s = s.__str__()
-    else:
-        padding = width - wcwidth.wcswidth(s)
-    if align == ">":
-        return " " * padding + s
-    elif align == "<":
-        return s + " " * padding
-    elif align == "^":
-        left_padding = padding // 2
-        right_padding = padding - left_padding
-        return " " * left_padding + s + " " * right_padding
-    else:
-        raise ValueError("Invalid alignment")
+def locationDecorator(fn) -> Callable:
+    def f(*args, **kwargs) -> Any:
+        location = player.location
+        result = fn(*args, **kwargs)
+        player.location = location
+        return result
+
+    return f

@@ -1,9 +1,116 @@
+import wcwidth
 from classlib import *
 from random import random
+from typing import Literal
 
 
 @locationDecorator
-def blacksmith_shop():
+def shop(name: str, top_floor) -> None:
+    def pad(s: Item | str, width, align: Literal[">", "<", "^"] = ">") -> str:
+        if isinstance(s, Item):
+            padding = width - wcwidth.wcswidth(s.name)
+            s = s.__str__()
+        else:
+            padding = width - wcwidth.wcswidth(s)
+        if align == ">":
+            return " " * padding + s
+        elif align == "<":
+            return s + " " * padding
+        elif align == "^":
+            left_padding = padding // 2
+            right_padding = padding - left_padding
+            return " " * left_padding + s + " " * right_padding
+        else:
+            raise ValueError("Invalid alignment")
+
+    f = True
+    floor = 1
+    while f:
+        if 1 <= floor <= top_floor:
+            print(TEXT[f"{name}_shop_{floor-1}"])
+            player.location = f"{name}_shop_f{floor}"
+        else:
+            print(TEXT["shop_0"].format(floor))
+            if floor > top_floor:
+                floor = top_floor
+            elif floor < 1:
+                floor = 1
+            continue
+        with open(data_dir + "\\product_list.json5", "r") as f:
+            product_list: list[Item] = list(map(Item, json5.load(f)[f"{name}_shop_f{floor}"]))
+        player.bag.renew()
+        while f:
+            option = input(f"[1.{TEXT[f'shop_1']}][2.{TEXT[f'shop_2']}][3.{TEXT[f'shop_3']}][4.{TEXT[f'shop_4']}][5.{TEXT[f'shop_5']}]:")
+            match option:
+                case "1":
+                    print(TEXT["shop_6"])
+                    l1 = len(str(len(product_list))) + 1
+                    l2 = max(wcwidth.wcswidth(v.name) for v in product_list)
+                    l3 = max(len(str(v.price)) for v in product_list)
+                    for i in range(len(product_list)):
+                        print(f"[{str(i+1)+'.':<{l1}}][{pad(product_list[i], l2, '<')}][{product_list[i].price:>{l3}}$]")
+                    while True:
+                        choose = input(TEXT["shop_7"])
+                        if choose == "-1":
+                            break
+                        try:
+                            choose = int(choose)
+                        except ValueError:
+                            print(TEXT["shop_8"])
+                            continue
+                        if choose < 1 or choose > len(product_list):
+                            print(TEXT["shop_9"])
+                            continue
+                        choose = product_list[choose - 1]
+                        quantity = input(TEXT["shop_10"])
+                        try:
+                            quantity = int(quantity)
+                        except TypeError:
+                            print(TEXT["shop_8"])
+                            continue
+                        if quantity < 1:
+                            print(TEXT["shop_11"])
+                            continue
+                        if player.money >= choose.price * quantity:
+                            player.money -= choose.price * quantity
+                            player.bag[choose] += quantity
+                            print(TEXT["shop_12"].format(quantity, choose, choose.price * quantity, player.money))
+                            break
+                        else:
+                            print(TEXT["shop_13"].format(player.money))
+                case "2":
+                    choose, quantity = player.bag.getItem()
+                    if choose == -1 and quantity == -1:
+                        continue
+                    m = choose.price // 2 * quantity
+                    player.money += m
+                    player.bag[choose] -= quantity
+                    player.bag.renew()
+                    print(TEXT["shop_14"].format(quantity, choose, m, player.money))
+                case "3":
+                    floor += 1
+                    break
+                case "4":
+                    floor -= 1
+                    break
+                case "5":
+                    f = False
+                case _:
+                    print(TEXT["input_error"])
+
+
+@locationDecorator
+def blacksmith_shop() -> None:
+    def forge_result(d: dict[Item, int] | my_dict[Item, int] | Bag[Item, int]) -> tuple[float, dict]:
+        if len(d) == 0:
+            return 0.0, my_dict()
+        t = []
+        for k, v in d.items():
+            t.append(k.price * v * zlib.adler32(k.name.encode()))
+        rate = sum(t) / len(t) / max(t) * player.modifier
+        result = my_dict(dict(), default=0)
+        return rate, result
+
     f = True
     while f:
         print("歡迎來到鐵匠鋪")
@@ -53,7 +160,7 @@ def blacksmith_shop():
 
 
 @locationDecorator
-def bank():
+def bank() -> None:
     f = True
     while f:
         player.location = "bank"
@@ -123,22 +230,22 @@ def bank():
 
 
 @locationDecorator
-def gym():
+def gym() -> None:
     pass
 
 
 @locationDecorator
-def task_wall():
+def task_wall() -> None:
     pass
 
 
 @locationDecorator
-def setting():
+def setting() -> None:
     pass
 
 
 @locationDecorator
-def explore():
+def explore() -> None:
     pass
 
 
@@ -147,7 +254,7 @@ def next_lv(lv: int):
     pass
 
 
-def main():
+def main() -> None:
     print(TEXT["player_name"], player.name)
     while True:
         if player.location == "lv":
@@ -160,11 +267,11 @@ def main():
                 case "1":
                     player.location = "lv"
                 case "2":
-                    material_shop.run()
+                    shop("material", 3)
                 case "3":
-                    equipment_shop.run()
+                    shop("equipment", 3)
                 case "4":
-                    prop_shop.run()
+                    shop("prop", 1)
                 case "5":
                     blacksmith_shop()
                 case "6":
@@ -196,7 +303,4 @@ if __name__ == "__main__":
     data_dir = "\\".join(__file__.split("\\")[:-2] + ["data"])
     save_dir = "\\".join(__file__.split("\\")[:-2] + ["save"])
     TEXT, player = init(data_dir, save_dir)
-    material_shop = Shop("material", 3)
-    equipment_shop = Shop("equipment", 3)
-    prop_shop = Shop("prop", 1)
     main()
