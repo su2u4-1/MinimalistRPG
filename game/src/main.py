@@ -165,7 +165,9 @@ def bank() -> None:
     while f:
         player.location = "bank"
         print(TEXT["bank_0"])
-        option = input(f"[1.{TEXT['bank_1']}][2.{TEXT['bank_2']}][3.{TEXT['bank_3']}][4.{TEXT['bank_4']}][5.{TEXT['bank_5']}][6.{TEXT['bank_6']}]:")
+        option = input(
+            f"[1.{TEXT['bank_1']}][2.{TEXT['bank_2']}][3.{TEXT['bank_3']}][4.{TEXT['bank_4']}][5.{TEXT['bank_5']}][6.{TEXT['bank_6']}]:"
+        )
         if option == "1":
             while True:
                 amount = input(TEXT["bank_7"])
@@ -262,7 +264,9 @@ def main() -> None:
         else:
             print(TEXT["current_location"], TEXT[player.location])
         if player.location == "home":
-            option = input(f"[1.{TEXT['go_out']}][2.{TEXT['material_shop']}][3.{TEXT['equipment_shop']}][4.{TEXT['prop_shop']}][5.{TEXT['blacksmith_shop']}][6.{TEXT['bank']}][7.{TEXT['gym']}][8.{TEXT['task_wall']}][9.{TEXT['setting']}]:")
+            option = input(
+                f"[1.{TEXT['go_out']}][2.{TEXT['material_shop']}][3.{TEXT['equipment_shop']}][4.{TEXT['prop_shop']}][5.{TEXT['blacksmith_shop']}][6.{TEXT['bank']}][7.{TEXT['gym']}][8.{TEXT['task_wall']}][9.{TEXT['setting']}]:"
+            )
             match option:
                 case "1":
                     player.location = "lv"

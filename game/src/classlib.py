@@ -49,7 +49,9 @@ class Player:
             path = save_dir + f"\\{self.name}.json5"
         while True:
             if os.path.isfile(path):
-                option = input(f"{TEXT['save_archive_0']}\n[1.{TEXT['save_archive_1']}][2.{TEXT['save_archive_2']}][3.{TEXT['save_archive_3']}]:")
+                option = input(
+                    f"{TEXT['save_archive_0']}\n[1.{TEXT['save_archive_1']}][2.{TEXT['save_archive_2']}][3.{TEXT['save_archive_3']}]:"
+                )
                 match option:
                     case "1":
                         path = save_dir + "\\" + input(TEXT["save_archive_4"]) + ".json5"
