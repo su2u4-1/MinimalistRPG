@@ -165,9 +165,7 @@ def bank() -> None:
     while f:
         player.location = "bank"
         print(TEXT["bank_0"])
-        option = input(
-            f"[1.{TEXT['bank_1']}][2.{TEXT['bank_2']}][3.{TEXT['bank_3']}][4.{TEXT['bank_4']}][5.{TEXT['bank_5']}][6.{TEXT['bank_6']}]:"
-        )
+        option = input(f"[1.{TEXT['bank_1']}][2.{TEXT['bank_2']}][3.{TEXT['bank_3']}][4.{TEXT['bank_4']}][5.{TEXT['bank_5']}][6.{TEXT['bank_6']}]:")
         if option == "1":
             while True:
                 amount = input(TEXT["bank_7"])

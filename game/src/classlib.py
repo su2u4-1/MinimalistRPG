@@ -1,4 +1,4 @@
-import os, json5, wcwidth, zlib
+import os, json5, zlib
 from typing import Any, Callable
 
 
@@ -49,9 +49,7 @@ class Player:
             path = save_dir + f"\\{self.name}.json5"
         while True:
             if os.path.isfile(path):
-                option = input(
-                    f"{TEXT['save_archive_0']}\n[1.{TEXT['save_archive_1']}][2.{TEXT['save_archive_2']}][3.{TEXT['save_archive_3']}]:"
-                )
+                option = input(f"{TEXT['save_archive_0']}\n[1.{TEXT['save_archive_1']}][2.{TEXT['save_archive_2']}][3.{TEXT['save_archive_3']}]:")
                 match option:
                     case "1":
                         path = save_dir + "\\" + input(TEXT["save_archive_4"]) + ".json5"
@@ -210,7 +208,7 @@ class Bag(my_dict):
             self[k] += v
 
 
-def init(data: str, save: str) -> tuple[my_dict[str:str], Player]:
+def init(data: str, save: str) -> tuple[my_dict[str, str], Player]:
     global data_dir, save_dir, default_language, ITEM, TEXT, CONFIG, ITEMNAME, player
 
     def switch_language(language: str) -> None:
